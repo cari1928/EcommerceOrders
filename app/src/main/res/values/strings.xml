@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">EcommerceOrders</string>
+
+    <string-array name="status">
+        <item>Seleccione un Status</item>
+        <item>Pending</item>
+        <item>Processing</item>
+        <item>On-Hold</item>
+        <item>Completed</item>
+        <item>Cancelled</item>
+        <item>Refunded</item>
+        <item>Failed</item>
+    </string-array>
+</resources>
