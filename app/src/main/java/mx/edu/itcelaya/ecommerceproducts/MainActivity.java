@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     String consumer_secret = "cs_9acec12116917aaa12187e38cde674e3f1b62057";
     String url = "https://192.168.1.64/store_itc/wc-api/v3/orders";
     AlertDialog dialogFoto;
+    Button btnRegresa;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,9 +69,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View view) {
-        //if(view == btnRegresa) {
-        //    dialogFoto.dismiss();
-        //}
+        if(view == btnRegresa) {
+            dialogFoto.dismiss();
+        }
     }
 
     @Override
@@ -96,6 +97,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
             List<Integer> products_id;
+            p_items = new ArrayList<Products>();
             Orders selected_order = items.get(position); //posición
             //Toast.makeText(getBaseContext(), "Orden: " + selected_order.getOrder_number(), Toast.LENGTH_LONG).show();
 
@@ -121,8 +123,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         //Toast.makeText(getBaseContext(), jsonResult, Toast.LENGTH_LONG).show();
-        //hasta aquí funciona
-
+        
         ListProducts(); //descomentar!!
     }
 
@@ -134,19 +135,55 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             //ya se pueden obtener sus elementos
             JSONObject jsonResponseProduct = new JSONObject(jsonProduct);
-            String payment_details = jsonResponseProduct.optString("title");
+            Integer id = jsonResponseProduct.optInt("id");
+            String ImageURL = jsonResponseProduct.optString("featured_src");
+            String title = jsonResponseProduct.optString("title");
+            String price = jsonResponseProduct.optString("price");
+            String description = jsonResponseProduct.optString("description");
+            Boolean in_stock = jsonResponseProduct.optBoolean("in_stock");
+            String stock_quantity = "0";
 
-            Toast.makeText(getApplicationContext(), payment_details, Toast.LENGTH_LONG).show();
+            if(in_stock) {
+                if(stock_quantity != null) {
+                    stock_quantity = jsonResponseProduct.optString("stock_quantity");
+                } else {
+                    stock_quantity = "0";
+                }
+            }
+
+            p_items.add(new Products(id, ImageURL, title, price, in_stock, stock_quantity, description));
+
+            //para mostrar los productos
+            AlertDialog.Builder builder = new AlertDialog.Builder(this); //recibe el contexto de la app
+            LinearLayout layout1 = new LinearLayout(this); //para colocar en él los elementos
+            layout1.setOrientation(LinearLayout.VERTICAL);
+
+            //nuevo listview en conjunto con un arrayadapter
+            ListView vProducts = new ListView(this);
+            vProducts.setAdapter(new ProductsAdapter(this, p_items));
+
+            //boton
+            btnRegresa = new Button(this);
+            btnRegresa.setText("Cerrar");
+            btnRegresa.setOnClickListener(this);
+
+            //se pasan los elementos al layout
+            layout1.addView(vProducts);
+            layout1.addView(btnRegresa);
+
+            builder.setView(layout1); //se le pasa el layout a builder
+            dialogFoto = builder.create(); //se termina de crear el dialogo
+            dialogFoto.show(); //se muestra el dialogo
 
         } catch (JSONException e) {
             e.printStackTrace();
             Toast.makeText(getApplicationContext(), "Error" + e.toString(), Toast.LENGTH_LONG).show();
 
         }
-        //listProducts.setAdapter(new ProductsAdapter(this, items));
     }
 
     private void loadOrders() {
+        url = "https://192.168.1.64/store_itc/wc-api/v3/orders";
         LoadProductsTask tarea = new LoadProductsTask(this, consumer_key, consumer_secret);
         try {
             jsonResult = tarea.execute(new String[] { url }).get();
