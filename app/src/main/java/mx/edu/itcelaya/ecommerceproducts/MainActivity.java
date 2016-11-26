@@ -54,8 +54,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //combo
         createSpinner();
-
-        //NukeSSLCerts.nuke(); //irá aquí? o en itemSelectedListener?
     }
 
     public void createSpinner(){
@@ -65,7 +63,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         sp_status.setAdapter(adapter_sp);
         sp_status.setOnItemSelectedListener(this);
     }
-
 
     @Override
     public void onClick(View view) {
@@ -77,7 +74,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
         TextView myText = (TextView) view;
-        Toast.makeText(this, "You selected " + myText.getText().toString().toLowerCase(), Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "You selected " + myText.getText().toString().toLowerCase(), Toast.LENGTH_SHORT).show();
 
         if(position != 0) {
             statusSelected = myText.getText().toString().toLowerCase();
@@ -169,9 +166,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             String stock_quantity = "0";
 
             if(in_stock) {
-                if(stock_quantity != null) {
-                    stock_quantity = jsonResponseProduct.optString("stock_quantity");
-                } else {
+                stock_quantity = jsonResponseProduct.optString("stock_quantity");
+                //Toast.makeText(getApplicationContext(), stock_quantity, Toast.LENGTH_LONG).show();
+                if(stock_quantity != null && !stock_quantity.equals("")) {
                     stock_quantity = "0";
                 }
             }
