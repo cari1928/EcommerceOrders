@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         }
 
-        listOrders.setAdapter(new ProductsAdapter(this, items));
+        listOrders.setAdapter(new OrdersAdapter(this, items));
     }
 
     @Override
