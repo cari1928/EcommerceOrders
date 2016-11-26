@@ -3,12 +3,12 @@
 
     <string-array name="status">
         <item>Seleccione un Status</item>
-        <item>Pending</item>
-        <item>Processing</item>
-        <item>On-Hold</item>
-        <item>Completed</item>
         <item>Cancelled</item>
-        <item>Refunded</item>
+        <item>Completed</item>
         <item>Failed</item>
+        <item>On-Hold</item>
+        <item>Pending</item>
+        <item>Refunded</item>
+        <item>Processing</item>
     </string-array>
 </resources>
