@@ -107,8 +107,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //Toast.makeText(getBaseContext(), "ID Producto: " + products_id.get(i), Toast.LENGTH_LONG).show();
                 loadProducts(product_id);
             }
+
+            setAdapter();
         }
     };
+
+    private void setAdapter(){
+        //para mostrar los productos
+        AlertDialog.Builder builder = new AlertDialog.Builder(this); //recibe el contexto de la app
+        LinearLayout layout1 = new LinearLayout(this); //para colocar en él los elementos
+        layout1.setOrientation(LinearLayout.VERTICAL);
+
+        //nuevo listview en conjunto con un arrayadapter
+        ListView vProducts = new ListView(this);
+        vProducts.setAdapter(new ProductsAdapter(this, p_items));
+
+        //boton
+        btnRegresa = new Button(this);
+        btnRegresa.setText("Cerrar");
+        btnRegresa.setOnClickListener(this);
+
+        //se pasan los elementos al layout
+        layout1.addView(vProducts);
+        layout1.addView(btnRegresa);
+
+        builder.setView(layout1); //se le pasa el layout a builder
+        dialogFoto = builder.create(); //se termina de crear el dialogo
+        dialogFoto.show(); //se muestra el dialogo
+    }
 
     private void loadProducts(int product_id) {
         url = "https://192.168.1.64/store_itc/wc-api/v3/products/" + product_id;
@@ -123,7 +149,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         //Toast.makeText(getBaseContext(), jsonResult, Toast.LENGTH_LONG).show();
-        
         ListProducts(); //descomentar!!
     }
 
@@ -152,28 +177,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
             p_items.add(new Products(id, ImageURL, title, price, in_stock, stock_quantity, description));
-
-            //para mostrar los productos
-            AlertDialog.Builder builder = new AlertDialog.Builder(this); //recibe el contexto de la app
-            LinearLayout layout1 = new LinearLayout(this); //para colocar en él los elementos
-            layout1.setOrientation(LinearLayout.VERTICAL);
-
-            //nuevo listview en conjunto con un arrayadapter
-            ListView vProducts = new ListView(this);
-            vProducts.setAdapter(new ProductsAdapter(this, p_items));
-
-            //boton
-            btnRegresa = new Button(this);
-            btnRegresa.setText("Cerrar");
-            btnRegresa.setOnClickListener(this);
-
-            //se pasan los elementos al layout
-            layout1.addView(vProducts);
-            layout1.addView(btnRegresa);
-
-            builder.setView(layout1); //se le pasa el layout a builder
-            dialogFoto = builder.create(); //se termina de crear el dialogo
-            dialogFoto.show(); //se muestra el dialogo
 
         } catch (JSONException e) {
             e.printStackTrace();
