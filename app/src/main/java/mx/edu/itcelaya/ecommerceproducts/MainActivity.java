@@ -72,16 +72,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
-            TextView myText = (TextView) view;
-                Toast.makeText(this, "You selected " + myText.getText() + " Posicion: " + position, Toast.LENGTH_SHORT).show();
+        TextView myText = (TextView) view;
+        Toast.makeText(this, "You selected " + myText.getText().toString().toLowerCase(), Toast.LENGTH_SHORT).show();
 
         if(position != 0) {
-            statusSelected = myText.getText() + "";
-
+            statusSelected = myText.getText().toString().toLowerCase();
             //listStatus.setOnItemClickListener(listenerProduct); //crear un listener que responda a cada elemento del list view
 
-            NukeSSLCerts.nuke();
+            listOrders.setAdapter(null);
+            items = new ArrayList<Orders>();
 
+            NukeSSLCerts.nuke();
             loadOrders();
         }
     }
@@ -108,24 +109,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             for (int i = 0; i < jsonMainNode.length(); i++) {
                 JSONObject jsonChildNode = jsonMainNode.getJSONObject(i);
 
-                Integer order_number = jsonChildNode.optInt("order_number");
-                String created_at = jsonChildNode.optString("created_at");
-                Integer total_line_items_quantity = jsonChildNode.optInt("total_line_items_quantity");
-                String total = jsonChildNode.optString("total");
+                String jsonStatus = jsonChildNode.optString("status");
 
-                String jsonPayment = jsonChildNode.optString("payment_details");
-                JSONObject jsonResponsePayment = new JSONObject(jsonPayment);
-                String payment_details = jsonResponsePayment.optString("method_title"); //obtenido!!!
+                //Toast.makeText(getApplicationContext(), "JSONStatus: " + jsonStatus, Toast.LENGTH_LONG).show();
+                if(jsonStatus.equals(statusSelected)) {
+                    Integer order_number = jsonChildNode.optInt("order_number");
+                    String created_at = jsonChildNode.optString("created_at");
+                    Integer total_line_items_quantity = jsonChildNode.optInt("total_line_items_quantity");
+                    String total = jsonChildNode.optString("total");
 
-                String jsonPersonal = jsonChildNode.optString("billing_address");
-                JSONObject jsonResponsePersonal = new JSONObject(jsonPersonal);
-                String first_name = jsonResponsePersonal.optString("first_name");
-                String last_name = jsonResponsePersonal.optString("last_name");
-                String email = jsonResponsePersonal.optString("email");
-                String nombre = first_name + " " + last_name;
+                    String jsonPayment = jsonChildNode.optString("payment_details");
+                    JSONObject jsonResponsePayment = new JSONObject(jsonPayment);
+                    String payment_details = jsonResponsePayment.optString("method_title"); //obtenido!!!
 
-                items.add(new Orders(order_number, created_at, total_line_items_quantity, total, payment_details, nombre, email));
-                //Toast.makeText(getApplicationContext(), "Nombre: " + nombre, Toast.LENGTH_LONG).show();
+                    String jsonPersonal = jsonChildNode.optString("billing_address");
+                    JSONObject jsonResponsePersonal = new JSONObject(jsonPersonal);
+                    String first_name = jsonResponsePersonal.optString("first_name");
+                    String last_name = jsonResponsePersonal.optString("last_name");
+                    String email = jsonResponsePersonal.optString("email");
+                    String nombre = first_name + " " + last_name;
+
+                    //Toast.makeText(getApplicationContext(), "Nombre: " + nombre, Toast.LENGTH_LONG).show();
+                    items.add(new Orders(order_number, created_at, total_line_items_quantity, total, payment_details, nombre, email));
+                }
             }
         } catch (JSONException e) {
             e.printStackTrace();
