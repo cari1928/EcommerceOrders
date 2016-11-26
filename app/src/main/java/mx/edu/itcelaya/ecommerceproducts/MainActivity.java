@@ -34,13 +34,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     ListView listOrders;
     List<Orders> items = new ArrayList<Orders>();
+    List<Products> p_items = new ArrayList<Products>();
     Spinner sp_status;
     String jsonResult;
     String statusSelected;
     String consumer_key = "ck_1e92f3593393b4b67a9c36b4cc3fa39cec0494fa";
     String consumer_secret = "cs_9acec12116917aaa12187e38cde674e3f1b62057";
     String url = "https://192.168.1.64/store_itc/wc-api/v3/orders";
-
+    AlertDialog dialogFoto;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +68,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View view) {
-
+        //if(view == btnRegresa) {
+        //    dialogFoto.dismiss();
+        //}
     }
 
     @Override
@@ -77,14 +80,70 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         if(position != 0) {
             statusSelected = myText.getText().toString().toLowerCase();
-            //listStatus.setOnItemClickListener(listenerProduct); //crear un listener que responda a cada elemento del list view
-
-            listOrders.setAdapter(null);
-            items = new ArrayList<Orders>();
-
+            initListOrders();
             NukeSSLCerts.nuke();
             loadOrders();
         }
+    }
+
+    public void initListOrders(){
+        listOrders.setAdapter(null);
+        items = new ArrayList<Orders>();
+        listOrders.setOnItemClickListener(listenerOrder); //crear un listener que responda a cada elemento del list view
+    }
+
+    AdapterView.OnItemClickListener listenerOrder = new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+            List<Integer> products_id;
+            Orders selected_order = items.get(position); //posición
+            //Toast.makeText(getBaseContext(), "Orden: " + selected_order.getOrder_number(), Toast.LENGTH_LONG).show();
+
+            products_id = selected_order.getProducts_id();
+            for(int i = 0; i < products_id.size(); i++) {
+                Integer product_id = products_id.get(i); //esto debe modificarse
+                //Toast.makeText(getBaseContext(), "ID Producto: " + products_id.get(i), Toast.LENGTH_LONG).show();
+                loadProducts(product_id);
+            }
+        }
+    };
+
+    private void loadProducts(int product_id) {
+        url = "https://192.168.1.64/store_itc/wc-api/v3/products/" + product_id;
+        LoadProductsTask tarea = new LoadProductsTask(this, consumer_key, consumer_secret);
+
+        try {
+            jsonResult = tarea.execute(new String[] { url }).get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        //Toast.makeText(getBaseContext(), jsonResult, Toast.LENGTH_LONG).show();
+        //hasta aquí funciona
+
+        ListProducts(); //descomentar!!
+    }
+
+    public void ListProducts(){
+        try {
+            //se obtiene el apartado product
+            JSONObject jsonResponse = new JSONObject(jsonResult);
+            String jsonProduct = jsonResponse.optString("product");
+
+            //ya se pueden obtener sus elementos
+            JSONObject jsonResponseProduct = new JSONObject(jsonProduct);
+            String payment_details = jsonResponseProduct.optString("title");
+
+            Toast.makeText(getApplicationContext(), payment_details, Toast.LENGTH_LONG).show();
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Toast.makeText(getApplicationContext(), "Error" + e.toString(), Toast.LENGTH_LONG).show();
+
+        }
+        //listProducts.setAdapter(new ProductsAdapter(this, items));
     }
 
     private void loadOrders() {
@@ -107,6 +166,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             JSONArray jsonMainNode = jsonResponse.optJSONArray("orders");
 
             for (int i = 0; i < jsonMainNode.length(); i++) {
+                List<Integer> products_id = new ArrayList<Integer>();
                 JSONObject jsonChildNode = jsonMainNode.getJSONObject(i);
 
                 String jsonStatus = jsonChildNode.optString("status");
@@ -129,8 +189,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     String email = jsonResponsePersonal.optString("email");
                     String nombre = first_name + " " + last_name;
 
-                    //Toast.makeText(getApplicationContext(), "Nombre: " + nombre, Toast.LENGTH_LONG).show();
-                    items.add(new Orders(order_number, created_at, total_line_items_quantity, total, payment_details, nombre, email));
+                    String jsonProduct = jsonChildNode.optString("line_items");
+                    JSONArray jsonMainNode2 = jsonChildNode.optJSONArray("line_items");
+                    for(int j = 0; j < jsonMainNode2.length(); j++) {
+                        JSONObject p = jsonMainNode2.getJSONObject(j);
+                        Integer product_id = p.optInt("product_id");
+                        //Toast.makeText(getApplicationContext(), "Productos: " + p.optInt("product_id"), Toast.LENGTH_LONG).show();
+                        products_id.add(product_id);
+                    }
+
+                    items.add(new Orders(order_number, created_at, total_line_items_quantity, total, payment_details, nombre, email, products_id));
                 }
             }
         } catch (JSONException e) {

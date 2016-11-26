@@ -66,13 +66,17 @@ public class ProductsAdapter extends BaseAdapter {
             rowView = inflater.inflate(R.layout.list_products, null);
         }
 
-        TextView tvName   = (TextView) rowView.findViewById(R.id.tvTitle);
+        TextView tvTitle   = (TextView) rowView.findViewById(R.id.tvTitle);
         TextView tvPrice  = (TextView) rowView.findViewById(R.id.tvPrice);
+        TextView tvStockQuantity  = (TextView) rowView.findViewById(R.id.tvStockQuantity);
+        TextView tvDescription  = (TextView) rowView.findViewById(R.id.tvDescription);
         img1 = (ImageView) rowView.findViewById(R.id.imgIdProduct);
 
         final Products item = this.productos.get(position);
-        tvName.setText(item.getTitle());
-        tvPrice.setText(item.getPrice()+ "");
+        tvTitle.setText(item.getTitle());
+        tvPrice.setText(item.getPrice());
+        tvStockQuantity.setText(item.getStock_quantity());
+        tvDescription.setText(item.getDescription());
         rowView.setTag(item.getId());
         String sUrl = item.getImageUrl();
         //String sUrl = "http://gravatar.com/avatar/1c57c8eea18ec3bbf43b81432e61132f";
@@ -81,78 +85,6 @@ public class ProductsAdapter extends BaseAdapter {
             final Bitmap bitmap = new BackgroundTask().execute(sUrl).get();
             img1.setImageBitmap(bitmap);
 
-            //---------------------------------------------------------------------------------------------------------
-            //código agregado
-            //final String url = "https://172.20.118.67/store_itc/wc-api/v3/products/" + item.getId() + "/reviews";
-            final String url = "https://192.168.1.68/store_itc/wc-api/v3/products/" + item.getId() + "/reviews";
-            final String consumer_key = "ck_1e92f3593393b4b67a9c36b4cc3fa39cec0494fa";
-            final String consumer_secret = "cs_9acec12116917aaa12187e38cde674e3f1b62057";
-            //---------------------------------------------------------------------------------------------------------
-
-            img1.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    //arreglo para guardar los elementos obtenidos de json
-                    List<Reviews> items = new ArrayList<Reviews>();
-
-                    //elementos para obtener el json
-                    LoadProductsTask tarea = new LoadProductsTask(null, consumer_key, consumer_secret);
-                    String jsonResult;
-                    try {
-                        jsonResult = tarea.execute(new String[] { url }).get();
-                        JSONObject jsonResponse = new JSONObject(jsonResult);
-                        JSONArray jsonMainNode = jsonResponse.optJSONArray("product_reviews");
-
-                        for (int i = 0; i < jsonMainNode.length(); i++) {
-                            JSONObject jsonChildNode = jsonMainNode.getJSONObject(i);
-                            Integer id = jsonChildNode.optInt("id");
-                            String created_at = jsonChildNode.optString("created_at");
-                            String review = jsonChildNode.optString("review");
-                            String reviewer_name = jsonChildNode.optString("reviewer_name");
-                            String reviewer_email = jsonChildNode.optString("reviewer_email");
-
-                            items.add(new Reviews(id, created_at, review, reviewer_name, reviewer_email));
-                        }
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                    //Esto es del código original
-                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
-
-                    TextView tvNombre = new TextView(context);
-                    tvNombre.setText(item.getTitle());
-
-                    LinearLayout layout1 = new LinearLayout(context);
-                    layout1.setOrientation(LinearLayout.VERTICAL);
-
-                    layout1.addView(tvNombre);
-
-                    //--------------------------------------------------------------------------------------
-                    //código agregado
-                    Reviews[] aReviews = new Reviews[items.size()];
-
-                    for(int i = 0; i < items.size(); i++) {
-                        aReviews[i] = items.get(i);
-                        TextView review = new TextView(context);
-                        review.setText("Creado: " + aReviews[i].getCreated_at() + "\nUsuario: " + aReviews[i].getReviewer_name()
-                            + "\nEmail: " + aReviews[i].getReviewer_email() + "\n" + aReviews[i].getReview() + "\n");
-                        layout1.addView(review);
-                    }
-                    //-----------------------------------------------------------------------------------------
-
-                    //comentados para que se vean los reviews
-                    ImageView ivFoto = new ImageView(context);
-                    ivFoto.setImageBitmap(bitmap);
-                    layout1.addView(ivFoto);
-                    builder.setView(ivFoto);
-
-                    builder.setView(layout1);
-                    AlertDialog dialogFoto = builder.create();
-                    dialogFoto.show();
-                }
-            });
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
@@ -160,7 +92,6 @@ public class ProductsAdapter extends BaseAdapter {
         }
 
         return rowView;
-
     }
 
     private InputStream OpenHttpConnection(String urlString)

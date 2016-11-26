@@ -1,5 +1,7 @@
 package mx.edu.itcelaya.ecommerceproducts;
 
+import java.util.List;
+
 /**
  * Created by Radogan on 2016-11-26.
  */
@@ -12,8 +14,9 @@ public class Orders {
     private String payment_details;
     private String full_name;
     private String email;
-    
-    public Orders(int order_number, String created_at, int total_line_items_quantity, String total, String payment_details, String full_name, String email) {
+    private List<Integer> products_id;
+
+    public Orders(int order_number, String created_at, int total_line_items_quantity, String total, String payment_details, String full_name, String email, List<Integer> products_id) {
         this.order_number = order_number;
         this.created_at = created_at;
         this.total_line_items_quantity = total_line_items_quantity;
@@ -21,6 +24,15 @@ public class Orders {
         this.payment_details = payment_details;
         this.full_name = full_name;
         this.email = email;
+        this.products_id = products_id;
+    }
+
+    public List<Integer> getProducts_id() {
+        return products_id;
+    }
+
+    public void setProducts_id(List<Integer> products_id) {
+        this.products_id = products_id;
     }
 
     public String getFull_name() {
