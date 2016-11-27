@@ -85,17 +85,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             e.printStackTrace();
         }
 
-        Toast.makeText(this, jsonResult, Toast.LENGTH_LONG).show();
+        //Toast.makeText(this, jsonResult, Toast.LENGTH_LONG).show();
+        switch (type){
+            case "status":
+                ListStatus();
+                a_status = new String[8];
+                a_status[0] = "Select Status";
+                for(int i = 1; i < a_status.length; i++) {
+                    a_status[i] = status_items.get(i - 1);
+                }
+                break;
 
-        if(type.equals("status")) {
-            ListStatus();
+            case "orders":
+                ListOrders();
+                break;
 
-            a_status = new String[8];
-            a_status[0] = "Select Status";
-            for(int i = 1; i < a_status.length; i++) {
-                a_status[i] = status_items.get(i - 1);
-            }
-            //Toast.makeText(this, a_status[6], Toast.LENGTH_LONG).show();
+            case "products":
+                ListProducts();
+                break;
         }
     }
 
@@ -124,9 +131,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             status_items.add(failed);
 
             //Toast.makeText(this, status_items.size(), Toast.LENGTH_LONG).show();
-
             //p_items.add(new Products(id, ImageURL, title, price, in_stock, stock_quantity, description));
-
         } catch (JSONException e) {
             e.printStackTrace();
             Toast.makeText(getApplicationContext(), "Error" + e.toString(), Toast.LENGTH_LONG).show();
@@ -144,10 +149,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
         TextView myText = (TextView) view;
         //Toast.makeText(this, "You selected " + myText.getText().toString().toLowerCase(), Toast.LENGTH_SHORT).show();
-
         if(position != 0) {
             switch (position) {
-                case 2 : //Processing
+                case 2: //Processing
                 case 4: //Completed
                 case 5: //Cancelled
                 case 6: //Refunded
@@ -164,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     break;
             }
             initListOrders();
-            loadOrders();
+            loadElements("https://192.168.1.64/store_itc/wc-api/v3/orders", "orders");
         }
     }
 
@@ -186,9 +190,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             for(int i = 0; i < products_id.size(); i++) {
                 Integer product_id = products_id.get(i); //esto debe modificarse
                 //Toast.makeText(getBaseContext(), "ID Producto: " + products_id.get(i), Toast.LENGTH_LONG).show();
-                loadProducts(product_id);
+                loadElements("https://192.168.1.64/store_itc/wc-api/v3/products/" + product_id, "products");
             }
-
             setAdapter();
         }
     };
@@ -217,24 +220,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dialogFoto.show(); //se muestra el dialogo
     }
 
-
-
-    private void loadProducts(int product_id) {
-        url = "https://192.168.1.64/store_itc/wc-api/v3/products/" + product_id;
-        LoadProductsTask tarea = new LoadProductsTask(this, consumer_key, consumer_secret);
-
-        try {
-            jsonResult = tarea.execute(new String[] { url }).get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-
-        //Toast.makeText(getBaseContext(), jsonResult, Toast.LENGTH_LONG).show();
-        ListProducts();
-    }
-
     public void ListProducts(){
         try {
             //se obtiene el apartado product
@@ -258,7 +243,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     stock_quantity = "0";
                 }
             }
-
             p_items.add(new Products(id, ImageURL, title, price, in_stock, stock_quantity, description));
 
         } catch (JSONException e) {
@@ -268,22 +252,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void loadOrders() {
-        url = "https://192.168.1.64/store_itc/wc-api/v3/orders";
-        LoadProductsTask tarea = new LoadProductsTask(this, consumer_key, consumer_secret);
-        try {
-            jsonResult = tarea.execute(new String[] { url }).get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-        //Toast.makeText(getBaseContext(), jsonResult, Toast.LENGTH_LONG).show();
-        ListOrders();
-    }
-
     public void ListOrders() {
-
         try {
             JSONObject jsonResponse = new JSONObject(jsonResult);
             JSONArray jsonMainNode = jsonResponse.optJSONArray("orders");
@@ -329,13 +298,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Toast.makeText(getApplicationContext(), "Error" + e.toString(), Toast.LENGTH_LONG).show();
 
         }
-
         listOrders.setAdapter(new OrdersAdapter(this, items));
     }
 
     @Override
     public void onNothingSelected(AdapterView<?> adapterView) {
-
     }
 
     public static class NukeSSLCerts {
