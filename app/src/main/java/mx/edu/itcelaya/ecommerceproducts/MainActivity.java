@@ -17,6 +17,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -35,7 +36,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ListView listOrders;
     List<Orders> items = new ArrayList<Orders>();
     List<Products> p_items = new ArrayList<Products>();
+    List<String> status_items = new ArrayList<String>();
     Spinner sp_status;
+    String[] a_status;
     String jsonResult;
     String statusSelected;
     String consumer_key = "ck_1e92f3593393b4b67a9c36b4cc3fa39cec0494fa";
@@ -49,6 +52,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        NukeSSLCerts.nuke(); //para ejecutar lar url
+
         //listview
         listOrders = (ListView) findViewById(R.id.listOrders);
 
@@ -59,9 +64,73 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void createSpinner(){
         statusSelected = "";
         sp_status = (Spinner) findViewById(R.id.status);
-        ArrayAdapter adapter_sp = ArrayAdapter.createFromResource(this, R.array.status, android.R.layout.simple_spinner_item);
+
+        url = "https://192.168.1.64/store_itc/wc-api/v3/orders/statuses";
+        loadElements(url, "status");
+
+        //ArrayAdapter adapter_sp = ArrayAdapter.createFromResource(this, R.array.status, android.R.layout.simple_spinner_item);
+        ArrayAdapter<String> adapter_sp = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, a_status);
         sp_status.setAdapter(adapter_sp);
         sp_status.setOnItemSelectedListener(this);
+    }
+
+    private void loadElements(String p_url, String type) {
+        LoadProductsTask tarea = new LoadProductsTask(this, consumer_key, consumer_secret);
+
+        try {
+            jsonResult = tarea.execute(new String[] { p_url }).get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        Toast.makeText(this, jsonResult, Toast.LENGTH_LONG).show();
+
+        if(type.equals("status")) {
+            ListStatus();
+
+            a_status = new String[8];
+            a_status[0] = "Select Status";
+            for(int i = 1; i < a_status.length; i++) {
+                a_status[i] = status_items.get(i - 1);
+            }
+            //Toast.makeText(this, a_status[6], Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public void ListStatus() {
+        try {
+            //se obtiene el apartado product
+            JSONObject jsonResponse = new JSONObject(jsonResult);
+            String jsonProduct = jsonResponse.optString("order_statuses");
+
+            //ya se pueden obtener sus elementos
+            JSONObject jsonResponseProduct = new JSONObject(jsonProduct);
+            String pending = jsonResponseProduct.optString("pending");
+            String processing = jsonResponseProduct.optString("processing");
+            String on_hold = jsonResponseProduct.optString("on-hold");
+            String completed = jsonResponseProduct.optString("completed");
+            String cancelled = jsonResponseProduct.optString("cancelled");
+            String refunded = jsonResponseProduct.optString("refunded");
+            String failed = jsonResponseProduct.optString("failed");
+
+            status_items.add(pending);
+            status_items.add(processing);
+            status_items.add(on_hold);
+            status_items.add(completed);
+            status_items.add(cancelled);
+            status_items.add(refunded);
+            status_items.add(failed);
+
+            //Toast.makeText(this, status_items.size(), Toast.LENGTH_LONG).show();
+
+            //p_items.add(new Products(id, ImageURL, title, price, in_stock, stock_quantity, description));
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Toast.makeText(getApplicationContext(), "Error" + e.toString(), Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
@@ -77,9 +146,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //Toast.makeText(this, "You selected " + myText.getText().toString().toLowerCase(), Toast.LENGTH_SHORT).show();
 
         if(position != 0) {
-            statusSelected = myText.getText().toString().toLowerCase();
+            switch (position) {
+                case 2 : //Processing
+                case 4: //Completed
+                case 5: //Cancelled
+                case 6: //Refunded
+                case 7: //Failed
+                    statusSelected = myText.getText().toString().toLowerCase();
+                    break;
+
+                case 1: //Pending Payment
+                    statusSelected = "pending";
+                    break;
+
+                case 3: //pending payment
+                    statusSelected = "on-hold";
+                    break;
+            }
             initListOrders();
-            NukeSSLCerts.nuke();
             loadOrders();
         }
     }
@@ -133,6 +217,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dialogFoto.show(); //se muestra el dialogo
     }
 
+
+
     private void loadProducts(int product_id) {
         url = "https://192.168.1.64/store_itc/wc-api/v3/products/" + product_id;
         LoadProductsTask tarea = new LoadProductsTask(this, consumer_key, consumer_secret);
@@ -146,7 +232,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         //Toast.makeText(getBaseContext(), jsonResult, Toast.LENGTH_LONG).show();
-        ListProducts(); //descomentar!!
+        ListProducts();
     }
 
     public void ListProducts(){
